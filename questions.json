@@ -1,6 +1,6 @@
 {
   "config": {
-    "endpoint": "",
+    "endpoint": "https://script.google.com/macros/s/AKfycbyDp3iXwUHCW2LzCmh9Y_Qp9vR3ti_dWZ-ZFu5hs3mfYG9DyAbZ2bm0lrjbw7Hz3WK1/exec",
     "sessionId": "mathfest-2026"
   },
   "checkpoints": [
