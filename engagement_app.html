@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LFM vs. ETV · Live Checkpoints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#12263A; --navy-deep:#0B1A29; --gold:#C8A44D; --gold-bright:#E3C36F;
+    --paper:#FAF7F0; --ink:#22303C; --teal:#2E7D6B; --line:rgba(18,38,58,.14);
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:"Inter",sans-serif; background:var(--paper); color:var(--ink);
+    min-height:100vh; line-height:1.55;
+  }
+  .wrap{max-width:640px; margin:0 auto; padding:20px 18px 80px;}
+
+  /* header */
+  header{padding:14px 0 8px;}
+  .eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--teal); font-weight:600;}
+  h1{font-family:"Fraunces",serif; font-weight:650; font-size:clamp(24px,6vw,32px); color:var(--navy); letter-spacing:-.01em; margin-top:4px;}
+  .sub{font-size:14px; color:#5a6673; margin-top:6px;}
+
+  /* pipeline tracker — the signature */
+  .pipeline{display:flex; align-items:center; margin:26px 0 8px;}
+  .node{
+    width:38px; height:38px; border-radius:50%; flex:none;
+    border:2.5px solid var(--line); background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"JetBrains Mono",monospace; font-size:13px; font-weight:600; color:#9aa5af;
+    transition:all .35s ease; cursor:pointer;
+  }
+  .pipe{flex:1; height:3px; background:var(--line); position:relative; overflow:hidden;}
+  .pipe::after{content:""; position:absolute; inset:0; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .5s ease;}
+  .pipe.flow::after{transform:scaleX(1);}
+  .node.unlocked{border-color:var(--gold); color:var(--navy);}
+  .node.done{background:var(--navy); border-color:var(--navy); color:var(--gold-bright);}
+  .node.active{border-color:var(--teal); box-shadow:0 0 0 5px rgba(46,125,107,.15); color:var(--teal);}
+  .stage-labels{display:flex; justify-content:space-between; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#9aa5af; font-weight:600; padding:0 2px;}
+
+  /* cards */
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 20px; margin-top:22px; box-shadow:0 1px 3px rgba(18,38,58,.05);
+  }
+  .card h2{font-family:"Fraunces",serif; font-weight:650; font-size:20px; color:var(--navy); margin-bottom:6px;}
+  .card p{font-size:14px; color:#5a6673;}
+
+  label{display:block; font-size:13px; font-weight:600; color:var(--navy); margin:16px 0 6px;}
+  input[type=email], input[type=text], textarea{
+    width:100%; font:inherit; font-size:16px; padding:12px 14px;
+    border:1.5px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink);
+  }
+  input:focus, textarea:focus{outline:none; border-color:var(--teal); background:#fff;}
+  textarea{resize:vertical; min-height:76px;}
+
+  .code-input{
+    font-family:"JetBrains Mono",monospace; font-size:22px !important; letter-spacing:.25em;
+    text-transform:uppercase; text-align:center;
+  }
+
+  .choices{display:flex; flex-direction:column; gap:8px; margin-top:6px;}
+  .choice{
+    display:flex; align-items:flex-start; gap:10px; padding:12px 14px;
+    border:1.5px solid var(--line); border-radius:10px; background:var(--paper);
+    font-size:14.5px; cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .choice input{accent-color:var(--teal); margin-top:3px; flex:none;}
+  .choice.sel{border-color:var(--teal); background:rgba(46,125,107,.07);}
+
+  button{
+    font:inherit; font-weight:600; font-size:15px; cursor:pointer;
+    border:none; border-radius:10px; padding:13px 22px; margin-top:18px;
+    background:var(--navy); color:var(--gold-bright); width:100%;
+    transition:background .15s, transform .1s;
+  }
+  button:hover{background:var(--navy-deep);}
+  button:active{transform:scale(.99);}
+  button:disabled{opacity:.45; cursor:not-allowed;}
+  button.quiet{background:transparent; color:var(--teal); padding:10px;}
+
+  .err{color:#a63d2f; font-size:13px; margin-top:8px; display:none;}
+  .err.show{display:block;}
+  .ok{
+    background:rgba(46,125,107,.08); border:1.5px solid rgba(46,125,107,.35);
+    color:var(--teal); border-radius:10px; padding:12px 14px; font-size:14px; font-weight:500;
+    margin-top:16px; display:none;
+  }
+  .ok.show{display:block;}
+
+  .cp-tag{
+    display:inline-block; font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:600;
+    letter-spacing:.1em; color:var(--gold); background:rgba(200,164,77,.14);
+    border-radius:6px; padding:3px 9px; margin-bottom:10px;
+  }
+  .done-banner{
+    text-align:center; padding:34px 20px;
+  }
+  .done-banner .big{font-family:"Fraunces",serif; font-size:26px; color:var(--navy); font-weight:650;}
+  .hidden{display:none !important;}
+  footer{margin-top:36px; font-size:12px; color:#9aa5af; text-align:center;}
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Live session · Cal Poly</div>
+    <h1>LFM vs. ETV</h1>
+    <p class="sub">Teaching frameworks for data science — answer checkpoints as they unlock during the talk.</p>
+  </header>
+
+  <div class="pipeline" id="pipeline"></div>
+  <div class="stage-labels"><span>Extract</span><span>Transform</span><span>Visualize</span></div>
+
+  <!-- STEP 1: email gate -->
+  <div class="card" id="gate">
+    <h2>Sign in to participate</h2>
+    <p>Your email links your answers across checkpoints. Responses are used for teaching research only.</p>
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@university.edu" autocomplete="email" inputmode="email">
+    <div class="err" id="gateErr">Enter a valid email to continue.</div>
+    <button onclick="signIn()">Start</button>
+  </div>
+
+  <!-- STEP 2: unlock -->
+  <div class="card hidden" id="unlockCard">
+    <h2>Waiting for the next checkpoint</h2>
+    <p>When a code appears on screen, enter it here.</p>
+    <label for="code">Unlock code</label>
+    <input type="text" id="code" class="code-input" maxlength="6" placeholder="·····" autocomplete="off" autocapitalize="characters">
+    <div class="err" id="codeErr">That code doesn't match an open checkpoint.</div>
+    <button onclick="tryUnlock()">Unlock</button>
+  </div>
+
+  <!-- STEP 3: question -->
+  <div class="card hidden" id="qCard">
+    <span class="cp-tag" id="qTag"></span>
+    <h2 id="qTitle"></h2>
+    <div class="choices" id="qChoices"></div>
+    <label for="qWhy" id="qWhyLabel">Why? (optional)</label>
+    <textarea id="qWhy" placeholder="One or two sentences…"></textarea>
+    <div class="err" id="qErr">Choose an option (or write an answer) before submitting.</div>
+    <button onclick="submitAnswer()" id="qSubmit">Submit answer</button>
+  </div>
+
+  <div class="ok" id="okMsg"></div>
+
+  <!-- All done -->
+  <div class="card hidden" id="doneCard">
+    <div class="done-banner">
+      <div class="big">Pipeline complete ✦</div>
+      <p style="margin-top:8px;">All five checkpoints answered — thank you. Interested in collaborating on the effectiveness study? Email <strong>imwillia@calpoly.edu</strong>.</p>
+    </div>
+  </div>
+
+  <footer>ETV · Extraction — Transformation — Visualization · Immanuel Williams</footer>
+</div>
+
+<script>
+/* ============ CONFIG ============
+   Questions and settings live in questions.json (same folder as this file).
+   Edit that file — not this one — to change questions, codes, the session id,
+   or the Google Apps Script endpoint (see GOOGLE_SHEETS_SETUP.md). */
+let CONFIG = { endpoint: "", sessionId: "session" };
+let CHECKPOINTS = [];
+/* ================================ */
+
+const S = { email: null, current: null, done: JSON.parse(localStorage.getItem("etv_done") || "[]") };
+
+function $(id){ return document.getElementById(id); }
+
+function renderPipeline(){
+  const p = $("pipeline"); p.innerHTML = "";
+  CHECKPOINTS.forEach((cp, i) => {
+    if (i > 0){
+      const pipe = document.createElement("div");
+      pipe.className = "pipe" + (S.done.includes(CHECKPOINTS[i-1].id) ? " flow" : "");
+      p.appendChild(pipe);
+    }
+    const n = document.createElement("div");
+    n.className = "node" +
+      (S.done.includes(cp.id) ? " done" :
+       (S.current === cp.id ? " active" : ""));
+    n.textContent = S.done.includes(cp.id) ? "✓" : cp.id;
+    n.title = "Checkpoint " + cp.id;
+    p.appendChild(n);
+  });
+}
+
+function signIn(){
+  const em = $("email").value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ $("gateErr").classList.add("show"); return; }
+  $("gateErr").classList.remove("show");
+  S.email = em;
+  localStorage.setItem("etv_email", em);
+  $("gate").classList.add("hidden");
+  $("unlockCard").classList.remove("hidden");
+  $("code").focus();
+  send({ event: "signin" });
+}
+
+function tryUnlock(){
+  const code = $("code").value.trim().toUpperCase();
+  const cp = CHECKPOINTS.find(c => c.code === code);
+  if (!cp){ $("codeErr").classList.add("show"); return; }
+  if (S.done.includes(cp.id)){
+    $("codeErr").textContent = "You've already answered that checkpoint.";
+    $("codeErr").classList.add("show"); return;
+  }
+  $("codeErr").classList.remove("show");
+  $("code").value = "";
+  openQuestion(cp);
+}
+
+function openQuestion(cp){
+  S.current = cp.id;
+  renderPipeline();
+  $("okMsg").classList.remove("show");
+  $("unlockCard").classList.add("hidden");
+  $("qCard").classList.remove("hidden");
+  $("qTag").textContent = "CHECKPOINT " + cp.id + " · " + cp.code;
+  $("qTitle").textContent = cp.title;
+  $("qWhyLabel").textContent = cp.why;
+  $("qWhy").value = "";
+  const box = $("qChoices"); box.innerHTML = "";
+  if (cp.choices){
+    cp.choices.forEach(c => {
+      const l = document.createElement("label");
+      l.className = "choice";
+      const r = document.createElement("input");
+      r.type = "radio"; r.name = "opt"; r.value = c;
+      r.addEventListener("change", () => {
+        document.querySelectorAll(".choice").forEach(x => x.classList.remove("sel"));
+        l.classList.add("sel");
+      });
+      l.appendChild(r);
+      l.appendChild(document.createTextNode(c));
+      box.appendChild(l);
+    });
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function submitAnswer(){
+  const cp = CHECKPOINTS.find(c => c.id === S.current);
+  const sel = document.querySelector('input[name="opt"]:checked');
+  const why = $("qWhy").value.trim();
+  if (cp.choices && !sel){ $("qErr").classList.add("show"); return; }
+  if (!cp.choices && !why){ $("qErr").classList.add("show"); return; }
+  $("qErr").classList.remove("show");
+
+  const record = {
+    event: "answer", checkpoint: cp.id, code: cp.code,
+    answer: sel ? sel.value : "", why: why
+  };
+  send(record);
+  saveLocal(record);
+
+  S.done.push(cp.id);
+  localStorage.setItem("etv_done", JSON.stringify(S.done));
+  S.current = null;
+  renderPipeline();
+
+  $("qCard").classList.add("hidden");
+  if (S.done.length >= CHECKPOINTS.length){
+    $("doneCard").classList.remove("hidden");
+    send({ event: "complete" });
+  } else {
+    $("okMsg").textContent = "✓ Checkpoint " + cp.id + " recorded. " + (CHECKPOINTS.length - S.done.length) + " to go — watch for the next code.";
+    $("okMsg").classList.add("show");
+    $("unlockCard").classList.remove("hidden");
+    $("code").focus();
+  }
+}
+
+function send(payload){
+  const body = JSON.stringify({
+    session: CONFIG.sessionId,
+    email: S.email || localStorage.getItem("etv_email") || "",
+    ts: new Date().toISOString(),
+    ...payload
+  });
+  if (!CONFIG.endpoint) return; // local-only mode
+  try {
+    if (navigator.sendBeacon){
+      navigator.sendBeacon(CONFIG.endpoint, new Blob([body], { type: "text/plain" }));
+    } else {
+      fetch(CONFIG.endpoint, { method: "POST", mode: "no-cors", body });
+    }
+  } catch(e){ /* keep the room moving; local copy is saved */ }
+}
+
+function saveLocal(record){
+  const all = JSON.parse(localStorage.getItem("etv_answers") || "[]");
+  all.push({ email: S.email, ts: new Date().toISOString(), ...record });
+  localStorage.setItem("etv_answers", JSON.stringify(all));
+}
+
+/* Presenter utility: visit the page with #export to download this device's answers as CSV */
+if (location.hash === "#export"){
+  const rows = JSON.parse(localStorage.getItem("etv_answers") || "[]");
+  const csv = "email,ts,checkpoint,code,answer,why\n" + rows.map(r =>
+    [r.email, r.ts, r.checkpoint, r.code, r.answer, r.why]
+      .map(v => '"' + String(v ?? "").replace(/"/g,'""') + '"').join(",")
+  ).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = "etv_checkpoint_answers.csv";
+  a.click();
+}
+
+/* load questions.json, then start the app */
+async function init(){
+  try {
+    const res = await fetch("questions.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    CONFIG = { ...CONFIG, ...(data.config || {}) };
+    CHECKPOINTS = data.checkpoints || [];
+    if (!CHECKPOINTS.length) throw new Error("no checkpoints in questions.json");
+  } catch (err){
+    $("gate").innerHTML =
+      "<h2>Couldn't load questions</h2>" +
+      "<p>questions.json failed to load (" + err.message + "). Make sure it sits in the same " +
+      "folder as this page and that the page is served over HTTP — e.g. run " +
+      "<code>python3 -m http.server</code> in this folder, or host on GitHub Pages. " +
+      "Opening the file directly with file:// blocks the JSON fetch in most browsers.</p>";
+    return;
+  }
+
+  /* restore returning participant */
+  const savedEmail = localStorage.getItem("etv_email");
+  if (savedEmail){
+    S.email = savedEmail;
+    $("gate").classList.add("hidden");
+    if (S.done.length >= CHECKPOINTS.length){
+      $("doneCard").classList.remove("hidden");
+    } else {
+      $("unlockCard").classList.remove("hidden");
+    }
+  }
+  renderPipeline();
+}
+init();
+
+/* Enter-key conveniences */
+$("email").addEventListener("keydown", e => { if (e.key === "Enter") signIn(); });
+$("code").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+</script>
+</body>
+</html>

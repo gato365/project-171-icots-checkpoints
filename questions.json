@@ -1,0 +1,63 @@
+{
+  "config": {
+    "endpoint": "",
+    "sessionId": "mathfest-2026"
+  },
+  "checkpoints": [
+    {
+      "id": 1,
+      "code": "TIDY",
+      "title": "Which pattern best describes how you currently teach data science or statistical computing?",
+      "choices": [
+        "LFM — package by package",
+        "ETV — full analytic cycles",
+        "A hybrid of both",
+        "Neither / I'm not teaching yet"
+      ],
+      "why": "What does that look like in your course? (optional)"
+    },
+    {
+      "id": 2,
+      "code": "VERBS",
+      "title": "In the two demos you just saw — what was the unit of instruction in the ETV demo?",
+      "choices": [
+        "The stage of the pipeline",
+        "The package",
+        "The dataset",
+        "The individual function"
+      ],
+      "why": "How could you tell? (optional)"
+    },
+    {
+      "id": 3,
+      "code": "PIPE",
+      "title": "Which LFM limitation do you see most in your own students?",
+      "choices": [
+        "Fragmented, isolated skills",
+        "Weak transfer to authentic problems",
+        "Unprepared for messy real data",
+        "Tool familiarity without workflow reasoning"
+      ],
+      "why": "A concrete example, if one comes to mind (optional)"
+    },
+    {
+      "id": 4,
+      "code": "JOIN",
+      "title": "You have a 10-week course. Which do you sequence first?",
+      "choices": [
+        "LFM first — build syntax, then workflows",
+        "ETV first — hook with real questions, weave in tools",
+        "Strictly alternate from week 1",
+        "Depends entirely on student background"
+      ],
+      "why": "Why? (this one I really want to read)"
+    },
+    {
+      "id": 5,
+      "code": "HUMAN",
+      "title": "One sentence: does AI make workflow reasoning more or less important — and why?",
+      "choices": null,
+      "why": "Your one sentence:"
+    }
+  ]
+}
