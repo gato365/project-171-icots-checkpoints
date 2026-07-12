@@ -12,7 +12,9 @@
         "LFM — package by package",
         "ETV — full analytic cycles",
         "A hybrid of both",
-        "Neither / I'm not teaching yet"
+        "Neither / I'm not teaching yet",
+        "I'm still deciding",
+        "Other (please specify)"
       ],
       "why": "What does that look like in your course? (optional)"
     },
@@ -24,7 +26,9 @@
         "The stage of the pipeline",
         "The package",
         "The dataset",
-        "The individual function"
+        "The individual function",
+        "The statistical method",
+        "Other (please specify)"
       ],
       "why": "How could you tell? (optional)"
     },
@@ -36,28 +40,39 @@
         "Fragmented, isolated skills",
         "Weak transfer to authentic problems",
         "Unprepared for messy real data",
-        "Tool familiarity without workflow reasoning"
+        "Tool familiarity without workflow reasoning",
+        "Difficulty connecting steps into a full analysis",
+        "Other (please specify)"
       ],
       "why": "A concrete example, if one comes to mind (optional)"
     },
     {
       "id": 4,
       "code": "JOIN",
-      "title": "You have a 10-week course. Which do you sequence first?",
+      "title": "You just watched two cycles. Where would you insert your own course's first ETV cycle — and which LFM block feeds it?",
       "choices": [
-        "LFM first — build syntax, then workflows",
-        "ETV first — hook with real questions, weave in tools",
-        "Strictly alternate from week 1",
-        "Depends entirely on student background"
+        "Early in the course — fed by data import and wrangling",
+        "Early in the course — fed by visualization",
+        "Mid-course — fed by data wrangling and visualization",
+        "Mid-course — fed by modeling",
+        "Late in the course — fed by several integrated LFM blocks",
+        "Other (please specify)"
       ],
       "why": "Why? (this one I really want to read)"
     },
     {
       "id": 5,
       "code": "HUMAN",
-      "title": "One sentence: does AI make workflow reasoning more or less important — and why?",
-      "choices": null,
-      "why": "Your one sentence:"
+      "title": "Which next step would you be most interested in: testing the methods, developing assessments, or collaborating on the research?",
+      "choices": [
+        "Testing the methods",
+        "Developing assessments",
+        "Collaborating on the research",
+        "Adapting materials for my own course",
+        "Not sure yet",
+        "Other (please specify)"
+      ],
+      "why": "Other thoughts or comments (optional):"
     }
   ]
 }
