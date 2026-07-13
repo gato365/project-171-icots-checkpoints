@@ -41,7 +41,7 @@
   .node.unlocked{border-color:var(--gold); color:var(--navy);}
   .node.done{background:var(--navy); border-color:var(--navy); color:var(--gold-bright);}
   .node.active{border-color:var(--teal); box-shadow:0 0 0 5px rgba(46,125,107,.15); color:var(--teal);}
-  .stage-labels{display:flex; justify-content:space-between; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#9aa5af; font-weight:600; padding:0 2px;}
+  .stage-labels{display:grid; grid-template-columns:repeat(5, 38px); justify-content:space-between; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#9aa5af; font-weight:600; text-align:center;}
 
   /* cards */
   .card{
@@ -110,13 +110,13 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">Live session · Cal Poly</div>
+    <div class="eyebrow">Cal Poly · GATO365</div>
     <h1>LFM vs. ETV</h1>
     <p class="sub">Teaching frameworks for data science — answer checkpoints as they unlock during the talk.</p>
   </header>
 
   <div class="pipeline" id="pipeline"></div>
-  <div class="stage-labels"><span>Extract</span><span>Transform</span><span>Visualize</span></div>
+  <div class="stage-labels"><span>Q1</span><span>Q2</span><span>Q3</span><span>Q4</span><span>Q5</span></div>
 
   <!-- STEP 1: email gate -->
   <div class="card" id="gate">
@@ -159,7 +159,7 @@
     </div>
   </div>
 
-  <footer>ETV · Extraction — Transformation — Visualization · Immanuel Williams</footer>
+  <footer>LFM vs. ETV</footer>
 </div>
 
 <script>
